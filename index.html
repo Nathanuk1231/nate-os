@@ -1,1 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Nate OS — Android 16 (Phone Demo)</title>
+  <meta name="description" content="Nate OS — Android 16-inspired phone UI mock (single-file)." />
+  <style>
+    :root{--bg:#071024;--surface:rgba(255,255,255,0.03);--card:#0f172a;--text:#e6eef8;--muted:#9fb0cc;--accent-1:#3b82f6;--accent-2:#7c3aed;--radius:18px;--safe-bottom:24px;font-family:Inter,Roboto,'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#050313);color:var(--text);-webkit-font-smoothing:antialiased}
+    .phone-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}
+    .phone{width:390px;height:844px;border-radius:34px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgba(2,8,25,0.7);background:linear-gradient(180deg,#04122b,#13041b);border:1px solid rgba(255,255,255,0.02)}
+    .statusbar{height:44px;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;backdrop-filter:blur(6px);position:relative;z-index:40}
+    .status-left,.status-right{display:flex;gap:8px;align-items:center}
+    .status-left .brand{display:flex;align-items:center;gap:8px;font-weight:700}
+    .status-left .brand .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--accent-1),var(--accent-2));box-shadow:0 4px 20px rgba(124,58,237,0.18)}
+    .status-right .item{font-size:12px;color:var(--muted)}
+    .wallpaper{position:absolute;inset:0;background-size:cover;background-position:center;filter:saturate(105%) contrast(1.02);transition:filter .3s ease;z-index:1}
+    .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,6,23,0.15),rgba(2,6,23,0.35));z-index:2}
+    .home{position:relative;z-index:10;padding:12px;box-sizing:border-box;height:calc(100% - 88px);display:flex;flex-direction:column}
+    .searchbar{height:56px;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border-radius:14px;padding:8px 12px;display:flex;gap:10px;align-items:center;backdrop-filter:blur(6px)}
+    .searchbar input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:15px}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px;align-content:start}
+    .app{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text);cursor:pointer}
+    .icon{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent-2),var(--accent-1));font-size:26px;box-shadow:inset 0 -10px 24px rgba(255,255,255,0.03)}
+    .app label{font-size:12px;color:var(--text);opacity:.95}
+    .dock{position:absolute;left:0;right:0;bottom:12px;padding:10px 18px;display:flex;justify-content:center;z-index:30}
+    .dock-inner{width:90%;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:999px;padding:8px 12px;backdrop-filter:blur(8px)}
+    .dock-app{display:flex;flex-direction:column;align-items:center;gap:6px}
+    .pill{height:6px;width:36px;background:rgba(255,255,255,0.06);border-radius:999px}
+    .drawer{position:absolute;left:0;right:0;bottom:0;height:72%;background:linear-gradient(180deg,rgba(2,6,23,0.88),rgba(2,6,23,0.95));border-top-left-radius:22px;border-top-right-radius:22px;transform:translateY(100%);transition:transform .34s cubic-bezier(.2,.95,.2,1);z-index:60;padding:12px;display:flex;flex-direction:column}
+    .drawer.open{transform:translateY(0)}
+    .drawer-handle{width:44px;height:6px;background:rgba(255,255,255,0.07);border-radius:999px;margin:6px auto}
+    .drawer-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px;overflow:auto;padding-bottom:48px}
+    .shade{position:absolute;inset:0;top:0;background:linear-gradient(180deg,rgba(2,6,23,0.9),rgba(2,6,23,0.98));transform:translateY(-100%);transition:transform .28s ease;z-index:80;padding-top:64px}
+    .shade.open{transform:translateY(0)}
+    .qs{display:flex;flex-wrap:wrap;gap:10px;padding:12px}
+    .tile{width:72px;height:72px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+    .notif-list{padding:12px;display:flex;flex-direction:column;gap:10px}
+    .notif{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:10px;border-radius:12px;display:flex;gap:10px;align-items:center}
+    .lock{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.2),rgba(0,0,0,0.4));z-index:120;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(6px)}
+    .lock .time{font-size:56px;font-weight:700}
+    .lock .date{color:var(--muted);margin-top:6px}
+    .pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+    .num{width:72px;height:72px;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center;border-radius:999px;font-weight:700}
+    .nav-gesture{position:absolute;left:0;right:0;bottom:0;height:44px;display:flex;align-items:center;justify-content:center;z-index:50}
+    .hidden{display:none}
+    .muted{color:var(--muted)}
+    .center{text-align:center}
+    input,button{font-family:inherit}
+    @media (max-width:420px){.phone{width:360px;height:780px}}
+  </style>
+</head>
+<body>
+  <div class="phone-wrap">
+    <div class="phone" id="phone">
+      <div class="wallpaper" id="wall" style="background-image:linear-gradient(120deg,#0ea5e9,#7c3aed)"></div>
+      <div class="scrim"></div>
+      <div class="shade" id="shade">
+        <div style="padding:0 14px;color:var(--text);font-weight:700;display:flex;justify-content:space-between;align-items:center"><div>Quick Settings</div><div style="font-size:13px;color:var(--muted)" id="shadeTime">--:--</div></div>
+        <div class="qs" id="qsTiles">
+          <div class="tile" data-tile="WiFi">📶<div class="muted">Wi‑Fi</div></div>
+          <div class="tile" data-tile="Bluetooth">🔵<div class="muted">Bluetooth</div></div>
+          <div class="tile" data-tile="Flashlight">🔦<div class="muted">Flashlight</div></div>
+          <div class="tile" data-tile="Airplane">✈️<div class="muted">Airplane</div></div>
+        </div>
+        <div class="notif-list" id="notifList"></div>
+      </div>
+      <div class="statusbar" id="statusbar">
+        <div class="status-left"><div class="brand"><div class="dot"></div><div>Nate OS</div></div></div>
+        <div class="status-right"><div class="status-item item" id="statTime">--:--</div><div class="status-item item">🔋 88%</div></div>
+      </div>
+      <div class="home" id="home">
+        <div class="searchbar" id="searchbar">
+          <div style="font-size:18px">🔎</div>
+          <input placeholder="Search apps, web..." id="searchInput" />
+          <div style="opacity:.7">Mic</div>
+        </div>
+        <div class="grid" id="appGrid" style="margin-bottom:12px"></div>
+      </div>
+      <div class="dock">
+        <div class="dock-inner">
+          <div class="dock-app" data-app="Phone"><div class="icon" style="width:52px;height:52px;border-radius:13px">📞</div><div class="muted" style="font-size:12px">Phone</div></div>
+          <div class="dock-app" data-app="Messages"><div class="icon" style="width:52px;height:52px;border-radius:13px">💬</div><div class="muted" style="font-size:12px">Messages</div></div>
+          <div class="pill"></div>
+          <div class="dock-app" data-app="Browser"><div class="icon" style="width:52px;height:52px;border-radius:13px">🌐</div><div class="muted" style="font-size:12px">Browser</div></div>
+          <div class="dock-app" data-app="Files"><div class="icon" style="width:52px;height:52px;border-radius:13px">📁</div><div class="muted" style="font-size:12px">Files</div></div>
+        </div>
+      </div>
+      <div class="drawer" id="drawer">
+        <div class="drawer-handle" id="drawerHandle"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 6px"><div style="font-weight:700">All apps</div><div class="muted">🔍</div></div>
+        <div class="drawer-grid" id="drawerGrid"></div>
+      </div>
+      <div class="lock hidden" id="lock">
+        <div class="time" id="lockTime">12:00</div>
+        <div class="date muted" id="lockDate">Sunday, January 1</div>
+        <div style="height:18px"></div>
+        <div class="pin-pad" id="pinPad"></div>
+        <div style="height:12px"></div>
+        <div class="muted center">Enter PIN to unlock</div>
+      </div>
+      <div class="nav-gesture" id="navGesture"></div>
+    </div>
+  </div>
+<script>
+  const APPS=[{id:'Phone',title:'Phone',icon:'📞'},{id:'Messages',title:'Messages',icon:'💬'},{id:'Browser',title:'Browser',icon:'🌐'},{id:'Files',title:'Files',icon:'📁'},{id:'Settings',title:'Settings',icon:'⚙️'},{id:'Clock',title:'Clock',icon:'⏰'},{id:'Camera',title:'Camera',icon:'📷'},{id:'Gallery',title:'Gallery',icon:'🖼️'},{id:'Music',title:'Music',icon:'🎵'},{id:'Maps',title:'Maps',icon:'🗺️'}];
+  let drawerOpen=false,shadeOpen=false,locked=false;
+  const phone=document.getElementById('phone');
+  const wall=document.getElementById('wall');
+  const drawer=document.getElementById('drawer');
+  const shade=document.getElementById('shade');
+  const appGrid=document.getElementById('appGrid');
+  const drawerGrid=document.getElementById('drawerGrid');
+  const notifList=document.getElementById('notifList');
+  const lock=document.getElementById('lock');
+  function fmtTime(d=new Date()){return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+  function fmtDate(d=new Date()){return d.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'})}
+  function updateLockTime(){const tEl=document.getElementById('lockTime');const dEl=document.getElementById('lockDate');if(tEl)tEl.textContent=fmtTime();if(dEl)dEl.textContent=fmtDate()}
+  function populateApps(){appGrid.innerHTML='';drawerGrid.innerHTML='';APPS.forEach(a=>{const el=document.createElement('div');el.className='app';el.innerHTML=`<div class="icon" aria-label="${a.title}">${a.icon}</div><label>${a.title}</label>`;el.addEventListener('click',()=>openApp(a.id));appGrid.appendChild(el);const dd=document.createElement('div');dd.className='app';dd.style.padding='6px';dd.innerHTML=`<div class="icon" style="width:56px;height:56px;border-radius:14px">${a.icon}</div><label>${a.title}</label>`;dd.addEventListener('click',()=>{openApp(a.id);closeDrawer()});drawerGrid.appendChild(dd)})}
+  populateApps();
+  function openApp(id){if(locked){shakeLock();return}const win=document.createElement('div');win.className='app-window';win.style.position='absolute';win.style.left='4px';win.style.top='84px';win.style.right='4px';win.style.bottom='84px';win.style.borderRadius='14px';win.style.background='linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))';win.style.zIndex=90;win.style.padding='12px';win.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style='font-weight:700'>${id}</div><div style='display:flex;gap:8px'><button class='win-close'>✕</button></div></div><div style='flex:1;overflow:auto'>${renderAppContent(id)}</div>`;phone.appendChild(win);animateOpen(win);const closeBtn=win.querySelector('.win-close');if(closeBtn)closeBtn.addEventListener('click',()=>win.remove())}
+  function animateOpen(el){el.animate([{transform:'translateY(20px)',opacity:0},{transform:'translateY(0)',opacity:1}],{duration:260,easing:'cubic-bezier(.2,.9,.2,1)'})}
+  function renderAppContent(id){if(id==='Browser')return `<iframe src='about:blank' style='width:100%;height:100%;border-radius:8px;border:0;background:#fff'></iframe>`;if(id==='Settings')return `<div><div style='font-weight:700;margin-bottom:6px'>Settings</div><div class='muted'>Theme & personalization</div><div style='height:10px'></div><button class='btn pick-wallpaper'>Choose wallpaper</button></div>`;if(id==='Clock')return `<div style='font-size:32px;font-weight:700'>${fmtTime()}</div><div class='muted'>Local time</div>`;return `<div style='font-size:14px'>This is a demo ${id} app. It's a lightweight simulation to feel like Android 16.</div>`}
+  function openDrawer(){drawerOpen=true;drawer.classList.add('open')}
+  function closeDrawer(){drawerOpen=false;drawer.classList.remove('open')}
+  function openShade(){shadeOpen=true;shade.classList.add('open')}
+  function closeShade(){shadeOpen=false;shade.classList.remove('open')}
+  function pushNotification(title,body){const n=document.createElement('div');n.className='notif';n.innerHTML=`<div style='font-size:20px'>🔔</div><div style='flex:1'><div style='font-weight:700'>${title}</div><div class='muted' style='font-size:13px'>${body}</div></div>`;notifList.prepend(n)}
+  setTimeout(()=>pushNotification('Welcome to Nate OS','This demo simulates Android 16-like UI.'),1200)
+  const PIN='1234'
+  function showLock(){locked=true;lock.classList.remove('hidden');updateLockTime()}
+  function hideLock(){locked=false;lock.classList.add('hidden')}
+  function shakeLock(){lock.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(0)'}],{duration:320})}
+  const pinPad=document.getElementById('pinPad');let entered='';function makePad(){pinPad.innerHTML='';for(let i=1;i<=9;i++){const b=document.createElement('div');b.className='num';b.textContent=i;b.addEventListener('click',()=>pressNum(String(i)));pinPad.appendChild(b)}const z=document.createElement('div');z.style.visibility='hidden';pinPad.appendChild(z);const zero=document.createElement('div');zero.className='num';zero.textContent='0';zero.addEventListener('click',()=>pressNum('0'));pinPad.appendChild(zero);const back=document.createElement('div');back.className='num';back.textContent='⌫';back.addEventListener('click',()=>{entered=entered.slice(0,-1);updatePinDots()});pinPad.appendChild(back)}makePad()
+  function pressNum(n){entered+=n;updatePinDots();if(entered.length>=4){if(entered===PIN){hideLock();entered='';updatePinDots();pushNotification('Unlocked','Welcome back to Nate OS')}else{entered='';updatePinDots();lockShiver()}}}
+  function updatePinDots(){}
+  function lockShiver(){lock.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:300})}
+  function openWallpaperPicker(){const modal=document.createElement('div');modal.className='modal';modal.style.position='absolute';modal.style.inset='80px 18px 120px 18px';modal.style.background='linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))';modal.style.borderRadius='12px';modal.style.zIndex=200;modal.style.padding='12px';modal.innerHTML=`<div style='display:flex;justify-content:space-between;align-items:center'><div style='font-weight:700'>Pick wallpaper</div><button class='modal-close'>Close</button></div><div style='height:12px'></div><div style='display:flex;gap:8px;flex-wrap:wrap'><button class='modal-wall' data-css='linear-gradient(120deg,#0ea5e9,#7c3aed)'>Blue-Purple</button><button class='modal-wall' data-css='linear-gradient(120deg,#06b6d4,#3b82f6)'>Teal-Blue</button><button class='modal-wall' data-css='linear-gradient(120deg,#1e3a8a,#6d28d9)'>Deep Indigo</button></div>`;phone.appendChild(modal);modal.querySelector('.modal-close')?.addEventListener('click',()=>modal.remove());modal.querySelectorAll('.modal-wall').forEach(b=>b.addEventListener('click',()=>{setWallpaper(b.getAttribute('data-css'));modal.remove()}))}
+  function setWallpaper(css){if(typeof css==='string')wall.style.backgroundImage=css;extractAccentFromGradient(css)}
+  function extractAccentFromGradient(css){const m=(css||'').match(/#([0-9a-fA-F]{6})/g)||['#3b82f6','#7c3aed'];const a=m[0]||'#3b82f6';const b=m[1]||m[0]||'#7c3aed';document.documentElement.style.setProperty('--accent-1',a);document.documentElement.style.setProperty('--accent-2',b);document.querySelectorAll('.dot').forEach(d=>d.style.background=`linear-gradient(135deg,${a},${b})`)}
+  function updateTimes(){const st=document.getElementById('statTime');const sd=document.getElementById('shadeTime');if(st)st.textContent=fmtTime();if(sd)sd.textContent=fmtTime();updateLockTime()}
+  setInterval(updateTimes,1000*30);updateTimes()
+  let startY=0,startX=0;function startDrag(e){const t=(e.touches&&e.touches[0])||e;startY=t.clientY;startX=t.clientX;document.addEventListener('mousemove',onDrag);document.addEventListener('touchmove',onDrag,{passive:false});document.addEventListener('mouseup',endDrag);document.addEventListener('touchend',endDrag)}
+  function onDrag(e){const t=(e.touches&&e.touches[0])||e;const y=t.clientY;const dy=y-startY;if(dy>40){openShade();endDrag()}}
+  function endDrag(){document.removeEventListener('mousemove',onDrag);document.removeEventListener('touchmove',onDrag);document.removeEventListener('mouseup',endDrag);document.removeEventListener('touchend',endDrag)}
+  let dStartY=0;function startDrawerDrag(e){const t=(e.touches&&e.touches[0])||e;dStartY=t.clientY;document.addEventListener('mousemove',onDrawerDrag);document.addEventListener('touchmove',onDrawerDrag,{passive:false});document.addEventListener('mouseup',endDrawerDrag);document.addEventListener('touchend',endDrawerDrag)}
+  function onDrawerDrag(e){const t=(e.touches&&e.touches[0])||e;const y=t.clientY;const dy=dStartY-y;if(dy>30){openDrawer();endDrawerDrag()}if(dy<-30){closeDrawer();endDrawerDrag()}}
+  function endDrawerDrag(){document.removeEventListener('mousemove',onDrawerDrag);document.removeEventListener('touchmove',onDrawerDrag);document.removeEventListener('mouseup',endDrawerDrag);document.removeEventListener('touchend',endDrawerDrag)}
+  document.getElementById('statusbar').addEventListener('click',()=>{if(shadeOpen)closeShade();else openShade()});
+  document.getElementById('statusbar').addEventListener('dblclick',()=>{if(!locked)showLock();else hideLock()});
+  function toggleTile(name){pushNotification(name+' toggled','Quick setting changed')}
+  setInterval(()=>{pushNotification('Message','You have a new message')},1000*25)
+  showLock()
+  window.openApp=openApp;window.openDrawer=openDrawer;window.closeDrawer=closeDrawer;window.openWallpaperPicker=openWallpaperPicker;window.setWallpaper=setWallpaper;window.toggleTile=toggleTile
+  document.addEventListener('click',(e)=>{if(drawerOpen&&!e.target.closest('.drawer')&&!e.target.closest('.drawer-handle'))closeDrawer()})
+  document.addEventListener('keydown',(e)=>{if(e.key&&e.key.toLowerCase()==='l'){if(locked)hideLock();else showLock()}if(e.key==='Escape'){closeShade();closeDrawer()}})
+  extractAccentFromGradient(wall.style.backgroundImage||'linear-gradient(120deg,#0ea5e9,#7c3aed)')
+  document.querySelectorAll('.tile').forEach(t=>t.addEventListener('click',()=>toggleTile(t.getAttribute('data-tile')||'tile')))
+  document.querySelectorAll('.dock-app').forEach(d=>d.addEventListener('click',()=>openApp(d.getAttribute('data-app'))))
+  document.getElementById('searchbar').addEventListener('contextmenu',e=>{e.preventDefault();openApp('Settings')})
+</script>
+</body>
+</html>
 
